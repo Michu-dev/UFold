@@ -5,7 +5,7 @@ import os
 import torch
 import torch.optim as optim
 from torch.utils import data
-import tqdm
+from tqdm.auto import tqdm
 
 import pdb
 import subprocess
@@ -31,7 +31,7 @@ from ufold.data_generator import Dataset_Cut_concat_new_merge_multi as Dataset_F
 import collections
 
 
-def train(contact_net, train_merge_generator, epoches_first):
+def train(contact_net, train_merge_generator, epoches_first, model_pt="ufold_train"):
     epoch = 0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     pos_weight = torch.Tensor([300]).to(device)
@@ -52,17 +52,18 @@ def train(contact_net, train_merge_generator, epoches_first):
         # num_batches = int(np.ceil(train_data.len / BATCH_SIZE))
         # for i in range(num_batches):
         # for contacts, seq_embeddings, matrix_reps, seq_lens, seq_ori, seq_name in train_generator:
-        for (
+        for i_batch, (
             contacts,
             seq_embeddings,
             matrix_reps,
             seq_lens,
             seq_ori,
             seq_name,
-        ) in train_merge_generator:
+        ) in enumerate(train_merge_generator):
             # for contacts, seq_embeddings, seq_embeddings_1, matrix_reps, seq_lens, seq_ori, seq_name in train_generator:
             # contacts, seq_embeddings, matrix_reps, seq_lens = next(iter(train_generator))
-
+            if i_batch % 100 == 0:
+                print(f"{i_batch} done in batch.")
             """
             compare_name = '>' + seq_name[0]
             if compare_name not in all_cdhit_names:
@@ -114,12 +115,12 @@ def train(contact_net, train_merge_generator, epoches_first):
             # torch.save(contact_net.state_dict(),  f'models_ckpt/final_model/unet_train_on_RNAlign_restart_{epoch}.pt')
             # torch.save(contact_net.state_dict(),  f'models_ckpt/final_model/unet_train_on_merge_alldata_{epoch}.pt')
             # torch.save(contact_net.state_dict(),  f'models_ckpt/final_model/unet_train_on_TR0bpnewOriuseMXUnet_{epoch}.pt')
-            torch.save(contact_net.state_dict(), f"../ufold_train_{epoch}.pt")
+            torch.save(contact_net.state_dict(), f"../{model_pt}_{epoch}.pt")
 
 
 def main():
     if torch.cuda.is_available():
-        torch.cuda.set_device(1)
+        torch.cuda.set_device("cuda:0")
 
     args = get_args()
 
@@ -145,6 +146,8 @@ def main():
     epoches_first = config.epoches_first
 
     train_files = args.train_files
+
+    model_pt = args.model_pt
 
     # if gpu is to be used
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -220,7 +223,7 @@ def main():
     # pos_weight = torch.Tensor([100]).to(device)
     # for length as 600
 
-    train(contact_net, train_merge_generator, epoches_first)
+    train(contact_net, train_merge_generator, epoches_first, model_pt=model_pt)
 
 
 # model_eval_all_test()

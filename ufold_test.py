@@ -69,7 +69,7 @@ def get_ct_dict_fast(predict_matrix,batch_num,ct_dict,dot_file_dict,seq_embeddin
 # randomly select one sample from the test set and perform the evaluation
 
 def model_eval_all_test(contact_net,test_generator):
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     contact_net.train()
     result_no_train = list()
     result_no_train_shift = list()
@@ -186,12 +186,13 @@ def model_eval_all_test(contact_net,test_generator):
         ct_file.write('\n')
     ct_file.close()
     '''
-    nt_exact_p,nt_exact_r,nt_exact_f1 = zip(*result_no_train)
+    nt_exact_p,nt_exact_r,nt_exact_f1,nt_exact_spc,nt_exact_gmean = zip(*result_no_train)
     #pdb.set_trace()
     print('Average testing F1 score with pure post-processing: ', np.average(nt_exact_f1))
     print('Average testing precision with pure post-processing: ', np.average(nt_exact_p))
     print('Average testing recall with pure post-processing: ', np.average(nt_exact_r))
-
+    print('Average testing specificity with pure post-processing: ', np.average(nt_exact_spc))
+    print('Average testing g-mean with pure post-processing: ', np.average(nt_exact_gmean))
 
     #with open('/data2/darren/experiment/ufold/results/sample_result.pickle','wb') as f:
     #    pickle.dump(result_dict,f)
@@ -223,10 +224,11 @@ def main():
     #MODEL_SAVED = '/data2/darren/experiment/ufold/models_ckpt/unet_bpTR0_addsimmutate_addmoresimilar17.pt' #unet_bpTR0_addsimmutate_addmoresimilar48.pt
     #MODEL_SAVED = '/data2/darren/experiment/ufold/models_ckpt/final_model/unet_train_on_TR0_33.pt'
     #MODEL_SAVED = '/data2/darren/experiment/ufold/models_ckpt/final_model/unet_train_on_RNAlign_49.pt'
-    if test_file not in ['TS1','TS2','TS3']:
-        MODEL_SAVED = 'models/ufold_train.pt'    
-    else:
-        MODEL_SAVED = 'models/ufold_train_pdbfinetune.pt'
+    # if test_file not in ['TS1','TS2','TS3']:
+    #     MODEL_SAVED = 'models/ufold_train.pt'    
+    # else:
+    #     MODEL_SAVED = 'models/ufold_train_pdbfinetune.pt'
+    MODEL_SAVED = args.model_pt
     #MODEL_SAVED = '/data2/darren/experiment/ufold/models_ckpt/final_model/unet_train_on_TR0andMXUnet_99.pt'
     #MODEL_SAVED = '/data2/darren/experiment/ufold/models_ckpt/final_model/unet_train_on_TR0bpnewOriuseMXUnet_96.pt'
     #MODEL_SAVED = '/data2/darren/experiment/ufold/models_ckpt/final_model/unet_train_on_TR0_extract_99.pt'
@@ -254,7 +256,7 @@ def main():
     
     
     # if gpu is to be used
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     seed_torch()
     
@@ -319,7 +321,7 @@ def main():
     
     #pdb.set_trace()
     print('==========Start Loading==========')
-    contact_net.load_state_dict(torch.load(MODEL_SAVED,map_location='cuda:1'))
+    contact_net.load_state_dict(torch.load(MODEL_SAVED,map_location='cuda:0'))
     print('==========Finish Loading==========')
     # contact_net = nn.DataParallel(contact_net, device_ids=[3, 4])
     contact_net.to(device)

@@ -67,6 +67,7 @@ def get_args():
         help='training file name list.')
     argparser.add_argument('--test_files', required=False,nargs='?',default='ArchiveII',choices=['ArchiveII','TS0','bpnew','TS1','TS2','TS3'],
         help='test file name')
+    argparser.add_argument("--model_pt", required=False, type=str, default="ufold_train")
     args = argparser.parse_args()
     return args
 
@@ -338,15 +339,20 @@ def evaluate_exact_new(pred_a, true_a, eps=1e-11):
     tp = tp_map.sum()
     pred_p = torch.sign(torch.Tensor(pred_a)).sum()
     true_p = true_a.sum()
+    true_n = len(true_a.flatten()) - true_p
+    print(true_p, true_n)
     fp = pred_p - tp
     fn = true_p - tp
+    tn = true_n - fp
     # recall = tp/(tp+fn)
     # precision = tp/(tp+fp)
     # f1_score = 2*tp/(2*tp + fp + fn)
     recall = (tp + eps)/(tp+fn+eps)
     precision = (tp + eps)/(tp+fp+eps)
     f1_score = (2*tp + eps)/(2*tp + fp + fn + eps)
-    return precision, recall, f1_score
+    specificity = (tn + eps)/(tn + fp + eps)
+    gmean = torch.sqrt(specificity*recall)
+    return precision, recall, f1_score, specificity, gmean
 
 def evaluate_exact(pred_a, true_a):
     tp_map = torch.sign(torch.Tensor(pred_a)*torch.Tensor(true_a))
