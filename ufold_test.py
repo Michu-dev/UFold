@@ -202,8 +202,8 @@ def model_eval_all_test(contact_net,test_generator):
 
 def main():
     torch.multiprocessing.set_sharing_strategy('file_system')
-    if torch.cuda.is_available():
-        torch.cuda.set_device("cuda:0")
+    # if torch.cuda.is_available():
+    #     torch.cuda.set_device("cuda:0")
     
     #pdb.set_trace()
     
