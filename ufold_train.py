@@ -120,7 +120,7 @@ def train(contact_net, train_merge_generator, epoches_first, model_pt="ufold_tra
 
 def main():
     if torch.cuda.is_available():
-        torch.cuda.set_device("cuda:0")
+        torch.cuda.set_device(1)
 
     args = get_args()
 
